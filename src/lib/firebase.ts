@@ -24,9 +24,7 @@ if (typeof window !== 'undefined') {
     getAnalytics(app);
     
     // Enable offline persistence (helps with connection issues)
-    enableIndexedDbPersistence(db, {
-      synchronizeTabs: true,
-    }).catch((err) => {
+    enableIndexedDbPersistence(db).catch((err) => {
       console.warn('Firestore persistence could not be enabled:', err.code);
     });
   } catch (error) {
