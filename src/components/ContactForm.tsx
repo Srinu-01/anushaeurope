@@ -68,6 +68,18 @@ const ContactForm = () => {
 
     try {
       setIsSubmitting(true);
+      
+      // First, verify network connectivity
+      if (!navigator.onLine) {
+        toast({
+          title: "No internet connection",
+          description: "Please check your internet connection and try again.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
       const result = await submitInquiry(formData);
       
       if (result.success) {
@@ -76,6 +88,7 @@ const ContactForm = () => {
           description: "Your inquiry has been submitted successfully.",
           variant: "default",
         });
+        
         // Reset form
         setFormData({
           name: '',
@@ -84,11 +97,38 @@ const ContactForm = () => {
           course: '',
           message: ''
         });
+        
+        setIsSubmitted(true);
+      } else {
+        // Handle specific error cases
+        if (result.code === 'permission-denied') {
+          toast({
+            title: "Permission Error",
+            description: "You don't have permission to submit inquiries.",
+            variant: "destructive",
+          });
+        } else if (result.code === 'unavailable' || result.error?.includes('network')) {
+          toast({
+            title: "Network Error",
+            description: "We're having trouble connecting to our servers. Please try again later.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: `Failed to submit inquiry: ${result.error}`,
+            variant: "destructive",
+          });
+        }
+        
+        // Log to console for debugging
+        console.error("Form submission error:", result);
       }
     } catch (error) {
+      console.error('Error in form submission:', error);
       toast({
         title: "Error",
-        description: "Failed to submit inquiry. Please try again.",
+        description: "Failed to submit inquiry. Please try again later.",
         variant: "destructive",
       });
     } finally {
