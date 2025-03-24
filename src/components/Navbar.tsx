@@ -86,7 +86,7 @@ const Navbar = () => {
             to="/contact#contact"
             className="hidden md:flex items-center px-5 py-2 bg-anusha-red text-white rounded-md shadow-sm hover:shadow-md hover:bg-opacity-90 transition-all"
           >
-            <span className="font-medium">Inquire Now</span>
+            <span className="font-medium">Register Now</span>
           </Link>
 
           {/* Mobile Menu Button */}
@@ -133,7 +133,7 @@ const Navbar = () => {
                 to="/contact#contact"
                 className="block py-2 px-4 mt-3 bg-anusha-red text-white rounded-md text-center font-medium"
               >
-                Inquire Now
+                Register Now
               </Link>
             </div>
           </motion.div>

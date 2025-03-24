@@ -1,8 +1,53 @@
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
 
 const Hero = () => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const [isHovering, setIsHovering] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
+  // Handle video end event to reset play state
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    
+    const handleEnded = () => {
+      setIsPlaying(false);
+    };
+    
+    if (videoElement) {
+      videoElement.addEventListener('ended', handleEnded);
+    }
+    
+    return () => {
+      if (videoElement) {
+        videoElement.removeEventListener('ended', handleEnded);
+      }
+    };
+  }, []);
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent this from triggering the play/pause
+    
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(!isMuted);
+    }
+  };
+
   return (
     <section className="relative min-h-screen overflow-hidden pt-24 bg-gradient-to-b from-white to-gray-50">
       <div className="absolute inset-0 overflow-hidden z-0">
@@ -12,7 +57,7 @@ const Hero = () => {
       </div>
 
       <div className="container mx-auto px-4 pt-16 md:pt-24 relative z-10">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -59,22 +104,81 @@ const Hero = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="relative"
           >
-            <div className="relative bg-white shadow-xl rounded-2xl overflow-hidden hover-scale">
+            {/* Video Showcase Section */}
+            <div className="relative bg-white shadow-xl rounded-2xl overflow-hidden hover:shadow-2xl transition-shadow duration-300">
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#000000] via-[#DE0000] to-[#FFCC00]" />
-              <img src='https://www.uni-mannheim.de/media/_processed_/7/c/csm_MA_Schloss_Ehrenhofleer_Staatliche_Schloesser_und_Gaerten_BadenWuerttemberg_dcc1e001f1.jpg'
               
-
-                alt="Students in Germany" 
-                className="w-full h-auto object-cover"
-              />
-              <div className="p-6 space-y-3">
-                <h3 className="text-xl font-bold">Study in Germany</h3>
-                <p className="text-gray-600">Admissions open for 2024-2025 academic year</p>
-                <div className="flex gap-2 flex-wrap">
-                  <span className="inline-block px-3 py-1 rounded-full bg-anusha-yellow/20 text-anusha-black text-xs">No IELTS Required</span>
-                  <span className="inline-block px-3 py-1 rounded-full bg-anusha-red/10 text-anusha-red text-xs">Low Tuition Cost</span>
-                  <span className="inline-block px-3 py-1 rounded-full bg-anusha-darkblue/10 text-anusha-darkblue text-xs">Work While Studying</span>
+              {/* HdWM University Video */}
+              <div 
+                className="relative aspect-video w-full overflow-hidden"
+                onMouseEnter={() => setIsHovering(true)}
+                onMouseLeave={() => setIsHovering(false)}
+              >
+                <video 
+                  ref={videoRef}
+                  className="w-full h-full object-cover"
+                  src="https://res.cloudinary.com/dmunsmu40/video/upload/v1742836194/xuuaqfpbp7hbuomgygoo.mp4"
+                  poster="https://www.uni-mannheim.de/media/_processed_/7/c/csm_MA_Schloss_Ehrenhofleer_Staatliche_Schloesser_und_Gaerten_BadenWuerttemberg_dcc1e001f1.jpg"
+                  muted
+                  playsInline
+                  preload="metadata"
+                  onClick={togglePlay}
+                />
+                
+                {/* Video Controls Overlay - Show on hover or when paused */}
+                <div 
+                  className={`absolute inset-0 transition-opacity duration-300 ${
+                    isPlaying && !isHovering ? 'opacity-0' : 'opacity-100 bg-black/30'
+                  } flex items-center justify-center`}
+                  onClick={togglePlay}
+                >
+                  <motion.button 
+                    initial={{ scale: 1 }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="w-16 h-16 rounded-full bg-anusha-red text-white flex items-center justify-center transition-all"
+                  >
+                    {isPlaying ? (
+                      <Pause className="h-8 w-8" />
+                    ) : (
+                      <Play className="h-8 w-8 ml-1" fill="white" />
+                    )}
+                  </motion.button>
                 </div>
+                
+                {/* Video Badge and Controls */}
+                <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300 ${
+                  isPlaying && !isHovering ? 'opacity-0' : 'opacity-100'
+                }`}>
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <span className="inline-block px-3 py-1 rounded-full bg-anusha-red text-white text-xs font-medium mb-2">
+                        Featured Insights
+                      </span>
+                      <h3 className="text-white text-sm md:text-base font-medium">
+                        Prof. Dr. Dolores Sanchez Bengoa on Student Life in Germany
+                      </h3>
+                    </div>
+                    <button 
+                      onClick={toggleMute} 
+                      className="bg-black/50 rounded-full p-2 text-white hover:bg-black/70 transition-colors"
+                    >
+                      {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Video Description */}
+              <div className="p-5 space-y-3">
+                <div className="flex gap-2 flex-wrap mb-3">
+                  <span className="inline-block px-3 py-1 rounded-full bg-anusha-yellow/20 text-anusha-black text-xs">HdWM University</span>
+                  <span className="inline-block px-3 py-1 rounded-full bg-anusha-red/10 text-anusha-red text-xs">Exclusive Interview</span>
+                  <span className="inline-block px-3 py-1 rounded-full bg-anusha-darkblue/10 text-anusha-darkblue text-xs">Study in Germany</span>
+                </div>
+                <p className="text-gray-600 text-sm">
+                  Vice-president of HdWM, Prof. Dr. Dolores Sanchez Bengoa shares insights about German university education, student lifestyle, and the opportunities that await international students.
+                </p>
               </div>
             </div>
             
@@ -83,8 +187,6 @@ const Hero = () => {
               <div className="text-2xl font-bold text-anusha-red">18+</div>
               <div className="text-sm text-gray-600">Months Work Visa</div>
             </div>
-            
-            {/* Removed the bottom-left floating card */}
           </motion.div>
         </div>
       </div>

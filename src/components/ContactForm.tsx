@@ -137,31 +137,39 @@ const ContactForm = () => {
   };
 
   return (
-    <section className="py-24 bg-white relative overflow-hidden" id="contact">
+    <section className="py-16 md:py-20 bg-white relative overflow-hidden" id="contact">
       <div className="absolute inset-0 z-0">
         <div className="absolute bottom-0 right-0 w-1/2 h-full bg-anusha-yellow/5 rounded-full transform translate-x-[30%] translate-y-[30%]" />
         <div className="absolute top-0 left-0 w-full h-1/3 bg-anusha-red/5 transform -skew-y-3" />
       </div>
       
       <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+        <div className="max-w-5xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-12"
+          >
+            <span className="inline-block px-3 py-1 rounded-full bg-anusha-red/10 text-anusha-red text-sm font-medium mb-4">
+              Get In Touch
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Start Your German Education Journey Today
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Have questions about studying in Germany? Fill out the form and our education experts will guide you through the process.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-12 items-start">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <span className="inline-block px-3 py-1 rounded-full bg-anusha-red/10 text-anusha-red text-sm font-medium mb-4">
-                Get In Touch
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                Start Your German Education Journey Today
-              </h2>
-              <p className="text-gray-600 mb-8 text-balance">
-                Have questions about studying in Germany? Fill out the form and our education experts will guide you through the process.
-              </p>
-              
               <div className="space-y-5">
                 <div className="flex items-start">
                   <div className="rounded-full bg-anusha-yellow/20 p-3 text-anusha-black mr-4 flex-shrink-0">
@@ -206,7 +214,7 @@ const ContactForm = () => {
               transition={{ duration: 0.6 }}
               className="glass-card rounded-2xl p-6 md:p-8 shadow-lg"
             >
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Inquire Now</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-6">Register Now</h3>
               
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
@@ -260,30 +268,7 @@ const ContactForm = () => {
                     />
                     {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
                   </div>
-                </div>
-                
-                <div>
-                  <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">
-                    Interested Course
-                  </label>
-                  <select
-                    id="course"
-                    name="course"
-                    value={formData.course}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-anusha-red/30 focus:border-anusha-red outline-none transition-all"
-                  >
-                    <option value="" disabled>Select a course</option>
-                    <option value="MS in Computer Science">MS in Computer Science</option>
-                    <option value="MS in Mechanical Engineering">MS in Mechanical Engineering</option>
-                    <option value="MS in Electrical Engineering">MS in Electrical Engineering</option>
-                    <option value="MBA">MBA</option>
-                    <option value="MS in Data Science">MS in Data Science</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  {errors.course && <p className="text-red-500 text-sm mt-1">{errors.course}</p>}
-                </div>
-                
+                </div>  
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
                     Message
@@ -317,12 +302,12 @@ const ContactForm = () => {
                   ) : isSubmitted ? (
                     <>
                       <Check className="h-5 w-5 mr-2" />
-                      Inquiry Sent
+                      Registration Sent
                     </>
                   ) : (
                     <>
                       <Send className="h-5 w-5 mr-2" />
-                      Submit Inquiry
+                      Submit Registration
                     </>
                   )}
                 </button>
