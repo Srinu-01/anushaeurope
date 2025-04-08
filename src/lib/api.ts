@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, getDoc, doc, updateDoc, query, orderBy, where, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, getDoc, doc, updateDoc, query, orderBy, where, serverTimestamp, deleteDoc, Timestamp, writeBatch, setDoc } from 'firebase/firestore';
 import { db } from './firebase';
 
 interface InquiryData {
@@ -139,6 +139,192 @@ export async function updateInquiry(id: string, data: Partial<Inquiry>) {
     return { success: true };
   } catch (error) {
     console.error('Error updating inquiry:', error);
+    throw error;
+  }
+}
+
+// Gallery interfaces
+export interface GalleryImage {
+  id?: string;
+  imageId: string;    // Cloudinary public ID
+  imageUrl: string;   // Cloudinary URL
+  title?: string;     // Optional title
+  description?: string; // Optional description
+  order: number;      // For custom ordering
+  uploadedAt: Date;   // Timestamp
+  visible?: boolean;  // Visibility toggle
+}
+
+/**
+ * Adds a new image to the gallery
+ */
+export async function addGalleryImage(imageData: Omit<GalleryImage, 'id' | 'uploadedAt'>): Promise<string> {
+  try {
+    const galleryRef = collection(db, "gallery");
+    const docRef = await addDoc(galleryRef, {
+      ...imageData,
+      uploadedAt: serverTimestamp(),
+      visible: true
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error("Error adding gallery image:", error);
+    throw error;
+  }
+}
+
+/**
+ * Gets all gallery images, sorted by order
+ */
+export async function getGalleryImages(onlyVisible = true): Promise<GalleryImage[]> {
+  try {
+    let queryRef;
+    if (onlyVisible) {
+      queryRef = query(
+        collection(db, "gallery"), 
+        where("visible", "==", true),
+        orderBy("order", "asc")
+      );
+    } else {
+      queryRef = query(collection(db, "gallery"), orderBy("order", "asc"));
+    }
+    
+    const querySnapshot = await getDocs(queryRef);
+    const images: GalleryImage[] = [];
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      images.push({
+        id: doc.id,
+        imageId: data.imageId as string,
+        imageUrl: data.imageUrl as string,
+        title: (data.title as string) || '',
+        description: (data.description as string) || '',
+        order: data.order as number,
+        uploadedAt: data.uploadedAt ? (data.uploadedAt as Timestamp).toDate() : new Date(),
+        visible: data.visible !== undefined ? data.visible as boolean : true
+      });
+    });
+    
+    return images;
+  } catch (error) {
+    console.error("Error getting gallery images:", error);
+    throw error;
+  }
+}
+
+/**
+ * Updates a gallery image
+ */
+export async function updateGalleryImage(id: string, updateData: Partial<GalleryImage>): Promise<void> {
+  try {
+    const imageRef = doc(db, "gallery", id);
+    
+    // Prepare the data for update, removing fields that shouldn't be updated
+    const dataToUpdate = { ...updateData };
+    delete dataToUpdate.id;
+    delete dataToUpdate.uploadedAt;
+    
+    await updateDoc(imageRef, dataToUpdate);
+  } catch (error) {
+    console.error("Error updating gallery image:", error);
+    throw error;
+  }
+}
+
+/**
+ * Deletes a gallery image
+ */
+export async function deleteGalleryImage(id: string): Promise<void> {
+  try {
+    const imageRef = doc(db, "gallery", id);
+    await deleteDoc(imageRef);
+  } catch (error) {
+    console.error("Error deleting gallery image:", error);
+    throw error;
+  }
+}
+
+/**
+ * Updates the order of multiple gallery images
+ */
+export async function updateGalleryOrder(imageOrders: {id: string, order: number}[]): Promise<void> {
+  try {
+    const batch = writeBatch(db);
+    
+    imageOrders.forEach((item) => {
+      const imageRef = doc(db, "gallery", item.id);
+      batch.update(imageRef, { order: item.order });
+    });
+    
+    await batch.commit();
+  } catch (error) {
+    console.error("Error updating gallery order:", error);
+    throw error;
+  }
+}
+
+/**
+ * Gets gallery settings
+ */
+export async function getGallerySettings(): Promise<{
+  itemsPerPage: number;
+  displayStyle: 'grid' | 'masonry';
+  enabled: boolean;
+}> {
+  try {
+    const settingsRef = doc(db, "settings", "gallery");
+    const settingsDoc = await getDoc(settingsRef);
+    
+    if (settingsDoc.exists()) {
+      return settingsDoc.data() as {
+        itemsPerPage: number;
+        displayStyle: 'grid' | 'masonry';
+        enabled: boolean;
+      };
+    }
+    
+    // Return defaults if settings don't exist
+    return {
+      itemsPerPage: 12,
+      displayStyle: 'grid',
+      enabled: true
+    };
+  } catch (error) {
+    console.error("Error getting gallery settings:", error);
+    // Return defaults on error
+    return {
+      itemsPerPage: 12,
+      displayStyle: 'grid',
+      enabled: true
+    };
+  }
+}
+
+/**
+ * Updates gallery settings
+ */
+export async function updateGallerySettings(settings: {
+  itemsPerPage?: number;
+  displayStyle?: 'grid' | 'masonry';
+  enabled?: boolean;
+}): Promise<void> {
+  try {
+    const settingsRef = doc(db, "settings", "gallery");
+    const settingsDoc = await getDoc(settingsRef);
+    
+    if (settingsDoc.exists()) {
+      await updateDoc(settingsRef, settings);
+    } else {
+      // If settings document doesn't exist, create it with defaults
+      await setDoc(settingsRef, {
+        itemsPerPage: settings.itemsPerPage || 12,
+        displayStyle: settings.displayStyle || 'grid',
+        enabled: settings.enabled !== undefined ? settings.enabled : true
+      });
+    }
+  } catch (error) {
+    console.error("Error updating gallery settings:", error);
     throw error;
   }
 }
